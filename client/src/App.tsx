@@ -2,14 +2,14 @@ import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { IRootState } from "./reducers";
 
+import Auth from "./pages/Auth";
 
-import "./styles/default.scss";
-import "./styles/app.scss";
+import "./theme.scss";
 
 interface IAppProps {}
 
 const App: React.FC<IAppProps> = props => {
-  return <div>app</div>;
+  return <Auth />;
 };
 
 const mapState = (state: IRootState) => ({});
