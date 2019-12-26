@@ -23,6 +23,12 @@ export function start() {
   // Routes
   app.use("/api", api);
 
+  // Обработчик ошибок
+  app.use(function(err, req, res, next) {
+    console.error(err.stack);
+    res.status(err.status || 500).send(err.status ? err.message : null);
+  });
+
   const port = Number(process.env.PORT) || 5000;
   const server = app.listen(port, async () => {
     console.log(`Server listening at ${port} port`);

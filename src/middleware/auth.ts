@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import * as jwt from "jsonwebtoken";
+import { createError } from "../utils";
 
 interface TokenPayload {
   userId: string;
@@ -13,7 +14,7 @@ const handler: RequestHandler = (req, res, next) => {
     req.params.userId = userId;
     next();
   } catch (e) {
-    next(new Error("invalid token"));
+    next(createError(new Error("invalid token"), 403));
   }
 };
 
