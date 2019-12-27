@@ -1,10 +1,19 @@
-import { Schema, SchemaTypes, model } from "mongoose";
+import { Schema, SchemaTypes, model, Document } from "mongoose";
 
-const schema = new Schema({
-  number: SchemaTypes.String,
+export interface BuildingSchema {
+  number: string;
   specs: {
-    number: SchemaTypes.String
+    constructionDate: Date;
+    floors: number;
+  };
+}
+
+const schema = new Schema<BuildingSchema>({
+  number: { type: SchemaTypes.String, unique: true, required: true },
+  specs: {
+    constructionDate: { type: SchemaTypes.Date, required: true },
+    floors: { type: SchemaTypes.Number, required: true }
   }
 });
-const Building = model("Building", schema);
+const Building = model<BuildingSchema & Document>("Building", schema);
 export default Building;

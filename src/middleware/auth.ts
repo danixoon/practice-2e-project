@@ -8,14 +8,14 @@ export interface TokenPayload {
   // role: UserRole;
 }
 
-export const validateAuth: (requiredRole: UserRole) => RequestHandler = requiredRole => async (req, res, next) => {
+export const validateAuth: (...requiredRole: UserRole[]) => RequestHandler = requiredRole => async (req, res, next) => {
   const token = req.headers.authorization;
   if (token === undefined) next(createError(403, "token required"));
   try {
     const { userId } = jwt.verify(token, process.env.APP_PRIVATE_KEY) as TokenPayload;
     const user = await User.findById(userId).exec();
-    if (!user || user.role !== requiredRole) return next(createError(403, "invalid token"));
-    req.params.userId = userId;
+    if (!user || !requiredRole.includes(user.role)) return next(createError(403, "invalid token"));
+    req.params.id = userId;
     return next();
   } catch (e) {
     return next(createError(403, "invalid token"));
