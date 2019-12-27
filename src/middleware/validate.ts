@@ -6,7 +6,7 @@ export const validateQuery: (schemaMap: joi.SchemaMap) => RequestHandler = schem
   const schema = joi.object().keys(schemaMap);
   const result = schema.validate(req.query);
 
-  if (result.error) next(createError(new Error(result.error.details[0].message), 400));
+  if (result.error) next(createError(400, result.error.details[0].message));
   else next();
 };
 

@@ -1,21 +1,25 @@
 import { RequestHandler } from "express";
 import * as jwt from "jsonwebtoken";
 import { createError } from "../utils";
+import User, { UserRole } from "../models/User";
 
-interface TokenPayload {
+export interface TokenPayload {
   userId: string;
+  // role: UserRole;
 }
 
-const handler: RequestHandler = (req, res, next) => {
+export const validateAuth: (requiredRole: UserRole) => RequestHandler = requiredRole => async (req, res, next) => {
   const token = req.headers.authorization;
-  if (token === undefined) next(new Error("token required"));
+  if (token === undefined) next(createError(403, "token required"));
   try {
     const { userId } = jwt.verify(token, process.env.APP_PRIVATE_KEY) as TokenPayload;
+    const user = await User.findById(userId).exec();
+    if (!user || user.role !== requiredRole) return next(createError(403, "invalid token"));
     req.params.userId = userId;
-    next();
+    return next();
   } catch (e) {
-    next(createError(new Error("invalid token"), 403));
+    return next(createError(403, "invalid token"));
   }
 };
 
-export default handler;
+// export  validateAuth;
