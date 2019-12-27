@@ -10,18 +10,22 @@ import Input from "../../components/Input";
 
 import * as _ from "lodash";
 import "./style.scss";
-import { stat } from "fs";
+import { setAccountToken } from "../../actions/accountAction";
 
 const getResponseMessage = (status: number) => {
   if (status === 0) return;
   else if (status === -1) return "Загрузка";
-  else if (status === 200) return "Выполнено";
+  else if (status >= 200 && status < 300) return "Выполнено";
   else return "Ошибка";
 };
 
-interface AuthProps {}
+interface AuthProps {
+  setPage: typeof setPage;
+  setAccountToken: typeof setAccountToken;
+}
 
 const Auth: React.FC<AuthProps> = props => {
+  const { setPage, setAccountToken } = props;
   const [bindAuth, authData] = useInput<any>();
   const [status, setStatus] = useState<number>(0);
 
@@ -29,15 +33,13 @@ const Auth: React.FC<AuthProps> = props => {
     e.preventDefault();
 
     axios
-      .get("/api/auth", { params: authData })
+      .get("/api/account/auth", { params: authData })
       .then(res => {
         setStatus(res.status);
-        console.log("Token: " + res.data);
-
-        axios.defaults.headers.common["Authorization"] = res.data;
+        setPage(res.data.role);
+        setAccountToken(res.data.token);
       })
       .catch(err => setStatus(500));
-
     setStatus(-1);
   };
 
@@ -70,8 +72,10 @@ const Auth: React.FC<AuthProps> = props => {
   );
 };
 
-const mapDispatch = {};
-
-const mapState = (s: IRootState, what: any) => {};
+const mapDispatch = {
+  setPage,
+  setAccountToken
+};
+const mapState = (s: IRootState) => ({});
 
 export default connect(mapState, mapDispatch)(Auth);
