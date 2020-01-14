@@ -1,4 +1,18 @@
-import { Schema, SchemaTypes, model } from "mongoose";
+import { Schema, SchemaTypes, model, Document, SchemaType } from "mongoose";
+
+export enum ServiceType {
+  building = 0,
+  room = 1
+}
+
+export interface ServiceSchema {
+  name: string;
+  description: string;
+  type: ServiceType;
+  required: boolean;
+  subscriptionId: Schema.Types.ObjectId;
+  providerId: Schema.Types.ObjectId;
+}
 
 const schema = new Schema({
   name: SchemaTypes.String,
@@ -8,5 +22,5 @@ const schema = new Schema({
   subscriptionId: { type: SchemaTypes.ObjectId, ref: "ServiceSubscription" },
   providerId: { type: SchemaTypes.ObjectId, ref: "ServiceProvider" }
 });
-const Service = model("Service", schema);
+const Service = model<ServiceSchema & Document>("Service", schema);
 export default Service;

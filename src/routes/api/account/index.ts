@@ -4,7 +4,7 @@ import * as jwt from "jsonwebtoken";
 import * as bcrypt from "bcrypt";
 import { validateAuth, TokenPayload } from "../../../middleware/auth";
 import { validateQuery } from "../../../middleware/validate";
-import User, { UserSchema } from "../../../models/User";
+import User, { UserSchema, UserRole } from "../../../models/User";
 import { signToken, createError, verifyToken, sha512Hash, genRandomString } from "../../../utils";
 
 const router = Router();
@@ -49,7 +49,7 @@ router.get("/auth", validateQuery(authSchema), async (req, res, next) => {
   // } else res.status(400).send();
 });
 
-const createSchema: joi.SchemaMap = {
+export const createSchema: joi.SchemaMap = {
   role: joi
     .string()
     .only(["admin", "user"])
@@ -64,8 +64,10 @@ const createSchema: joi.SchemaMap = {
     .regex(/^\s*(3[01]|[12][0-9]|0?[1-9])\.(1[012]|0?[1-9])\.((?:19|20)\d{2})\s*$/)
     .required()
 };
-router.post("/create", validateAuth("admin"), validateQuery(createSchema), async (req, res, next) => {
-  const { username, password, firstname, lastname, middlename, dob, role } = req.query;
+
+export const createUser = async (query: { username: string; password: string; firstname: string; lastname: string; middlename: string; dob: string; role: UserRole }) => {
+  const { username, password, firstname, lastname, middlename, dob, role } = query;
+
   const [day, month, year] = dob.split(".").map(v => Number(v));
   const data: UserSchema = {
     account: {
@@ -82,16 +84,25 @@ router.post("/create", validateAuth("admin"), validateQuery(createSchema), async
   };
 
   const isExists = (await User.find({ "account.username": username }).exec()).length !== 0;
-  if (isExists) return next(createError(422, "user already exists"));
+  if (isExists) throw createError(422, "user already exists");
 
-  const user = new User(data);
+  const user = await new User(data).save();
+  return user;
 
-  user
-    .save()
-    .then(() => res.status(201).send())
-    .catch(next);
+  // user
+  //   .save()
+  //   .then(() => res.status(201).send())
+  //   .catch(next);
+};
 
-  // const token = signToken({ userId: user.id, role });
+router.post("/create", validateAuth("admin"), validateQuery(createSchema), async (req, res, next) => {
+  // const { username, password, firstname, lastname, middlename, dob, role } = req.query;
+
+  const user = await createUser(req.query).catch(next);
+  if (user) {
+    // const token = signToken({ userId: user.id });
+    res.status(201).send();
+  }
 });
 
 export default router;
